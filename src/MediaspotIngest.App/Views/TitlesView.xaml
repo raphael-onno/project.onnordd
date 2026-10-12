@@ -1,0 +1,60 @@
+<UserControl x:Class="MediaspotIngest.App.Views.TitlesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DockPanel Margin="8">
+        <TextBlock DockPanel.Dock="Bottom" Text="{Binding Status}" Margin="0,8,0,0" />
+
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+            <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,8"
+                       Text="Un titre par dossier du registre, créé automatiquement avec les lots. Compléter titre et année, puis « Créer dans Mediaspot » : l'appli crée le titre par l'API (ou retrouve celui qui existe déjà) et écrit l'ID que Mediaspot lui attribue dans les items. Le Title ID (identifiant client) est facultatif : s'il est renseigné, c'est par lui que l'existant est retrouvé, sinon par le nom exact." />
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Recherche" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <TextBox Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" Width="280" Margin="0,0,16,0" />
+                <CheckBox Content="Seulement les titres incomplets" IsChecked="{Binding OnlyIncomplete}" VerticalAlignment="Center" Margin="0,0,24,0" />
+                <Button Content="Enregistrer et appliquer aux items" Command="{Binding SaveCommand}" Margin="0,0,8,0" />
+                <Button Content="Créer dans Mediaspot" Command="{Binding CreateInMediaspotCommand}" FontWeight="SemiBold" Margin="0,0,8,0"
+                        ToolTip="Sur la sélection, ou sur tous les titres affichés sans ID Mediaspot si rien n'est sélectionné." />
+                <Button Content="Recharger" Command="{Binding ReloadCommand}" />
+            </StackPanel>
+        </StackPanel>
+
+        <DataGrid x:Name="TitlesGrid" ItemsSource="{Binding View}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                  HeadersVisibility="Column" GridLinesVisibility="Horizontal" SelectionMode="Extended"
+                  SelectionChanged="TitlesGrid_SelectionChanged">
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsDirty}" Value="True">
+                            <Setter Property="FontWeight" Value="SemiBold" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+            <DataGrid.Columns>
+                <DataGridCheckBoxColumn Header="Complet" Binding="{Binding IsComplete, Mode=OneWay}" IsReadOnly="True" Width="70" />
+                <DataGridTextColumn Header="Dossier registre" Binding="{Binding TitleKey}" IsReadOnly="True" Width="200" />
+                <DataGridTextColumn Header="Title ID" Binding="{Binding TitleCustomId, UpdateSourceTrigger=PropertyChanged}" Width="120" />
+                <DataGridTextColumn Header="Titre principal" Binding="{Binding MainTitle, UpdateSourceTrigger=PropertyChanged}" Width="*" MinWidth="240" />
+                <DataGridComboBoxColumn Header="Type" SelectedItemBinding="{Binding TitleType}" Width="100">
+                    <DataGridComboBoxColumn.ElementStyle>
+                        <Style TargetType="ComboBox">
+                            <Setter Property="ItemsSource" Value="{Binding DataContext.TitleTypes, RelativeSource={RelativeSource AncestorType=DataGrid}}" />
+                        </Style>
+                    </DataGridComboBoxColumn.ElementStyle>
+                    <DataGridComboBoxColumn.EditingElementStyle>
+                        <Style TargetType="ComboBox">
+                            <Setter Property="ItemsSource" Value="{Binding DataContext.TitleTypes, RelativeSource={RelativeSource AncestorType=DataGrid}}" />
+                        </Style>
+                    </DataGridComboBoxColumn.EditingElementStyle>
+                </DataGridComboBoxColumn>
+                <DataGridTextColumn Header="Année" Binding="{Binding ProductionYear, TargetNullValue=''}" Width="70" />
+                <DataGridTextColumn Header="Langue VO" Binding="{Binding OriginalLanguage, UpdateSourceTrigger=PropertyChanged}" Width="90" />
+                <DataGridTextColumn Header="Format image" Binding="{Binding PictureFormat, UpdateSourceTrigger=PropertyChanged}" Width="100" />
+                <DataGridTextColumn Header="Saison" Binding="{Binding SeasonNumber, UpdateSourceTrigger=PropertyChanged}" Width="70" />
+                <DataGridTextColumn Header="Nb épisodes" Binding="{Binding EpisodesCount, TargetNullValue=''}" Width="90" />
+                <DataGridTextColumn Header="ID Mediaspot" Binding="{Binding VdmTitleId, TargetNullValue=''}" IsReadOnly="True" Width="100" />
+                <DataGridTextColumn Header="Mediaspot" Binding="{Binding MediaspotResult}" IsReadOnly="True" Width="220" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</UserControl>

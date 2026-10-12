@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>onnoRDD</AssemblyName>
+    <Product>onnoRDD</Product>
+    <AssemblyTitle>onnoRDD — ingest des archives dans Mediaspot</AssemblyTitle>
+    <ApplicationIcon>Assets\onnoRDD.ico</ApplicationIcon>
+    <!-- The Fluent theme dictionaries are still flagged as preview. -->
+    <NoWarn>$(NoWarn);WPF0001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- WPF leaves System.IO out of the implicit usings (Path clashes with Shapes.Path, unused here). -->
+    <Using Include="System.IO" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\onnoRDD.ico" />
+    <None Include="Assets\onnoRDD-512.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MediaspotIngest.Core\MediaspotIngest.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MediaspotIngest.App/MediaspotIngest.App.csproj" />
+    <Project Path="src/MediaspotIngest.Core/MediaspotIngest.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MediaspotIngest.Core.UnitTests/MediaspotIngest.Core.UnitTests.csproj" />
+  </Folder>
+</Solution>

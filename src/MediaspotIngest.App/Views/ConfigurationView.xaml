@@ -1,0 +1,477 @@
+<UserControl x:Class="MediaspotIngest.App.Views.ConfigurationView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <!-- One field = a label on the left, the input and its explanation on the right. -->
+        <Style x:Key="Field" TargetType="Grid">
+            <Setter Property="Margin" Value="0,4,0,8" />
+        </Style>
+        <Style x:Key="Label" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,6,16,0" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style x:Key="Explain" TargetType="TextBlock" BasedOn="{StaticResource Hint}">
+            <Setter Property="Margin" Value="2,3,0,0" />
+        </Style>
+        <Style x:Key="BrowseButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Content" Value="…" />
+            <Setter Property="Margin" Value="6,0,0,0" />
+            <Setter Property="MinWidth" Value="36" />
+        </Style>
+        <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="MinWidth" Value="160" />
+        </Style>
+    </UserControl.Resources>
+
+    <DockPanel Margin="8">
+        <!-- Save bar -->
+        <Border DockPanel.Dock="Bottom" Padding="0,10,0,0">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Left" Style="{StaticResource Hint}" VerticalAlignment="Center">
+                    <Run Text="Fichier de configuration :" /> <Run Text="{Binding SettingsFilePath, Mode=OneWay}" />
+                    <Run Text=" — mots de passe chiffrés pour votre session Windows." />
+                </TextBlock>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <TextBlock Text="{Binding Status}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                    <Button Content="Annuler les modifications" Command="{Binding CancelCommand}" Margin="0,0,8,0" />
+                    <Button Content="Enregistrer" Command="{Binding SaveCommand}" FontWeight="SemiBold" MinWidth="120" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="240" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Profiles list -->
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="Plateformes" Style="{StaticResource SectionTitle}" Margin="0,0,0,6" />
+                <TextBlock DockPanel.Dock="Top" Style="{StaticResource Hint}" Margin="0,0,0,8"
+                           Text="Un profil par plateforme Mediaspot (client). NRJ12 est fourni pour référence : ce sont les valeurs de l'ancien outil DaletToMediaspot." />
+                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,8,0,0">
+                    <Button Content="Ajouter" Command="{Binding AddProfileCommand}" Margin="0,0,6,0" />
+                    <Button Content="Dupliquer" Command="{Binding DuplicateProfileCommand}" Margin="0,0,6,0" />
+                    <Button Content="Supprimer" Command="{Binding DeleteProfileCommand}" />
+                </StackPanel>
+                <ListBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}" DisplayMemberPath="Name" />
+            </DockPanel>
+
+            <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="0,0,16,16" MaxWidth="1000" HorizontalAlignment="Left">
+
+                    <!-- ================= Selected profile ================= -->
+                    <StackPanel DataContext="{Binding SelectedProfile}"
+                                Visibility="{Binding Converter={StaticResource NullToCollapsed}}">
+
+                        <TextBlock Text="1. Plateforme Mediaspot" Style="{StaticResource SectionTitle}" Margin="0,0,0,6" />
+
+                        <Grid Style="{StaticResource Field}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="Nom du profil" Style="{StaticResource Label}" />
+                            <StackPanel Grid.Column="1">
+                                <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Width="320" HorizontalAlignment="Left" />
+                                <TextBlock Style="{StaticResource Explain}" Text="Libre. Sert de clé aux lots enregistrés : éviter de le changer une fois des lots créés." />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Style="{StaticResource Field}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="ID de plateforme" Style="{StaticResource Label}" />
+                            <StackPanel Grid.Column="1">
+                                <TextBox Text="{Binding PlatformId}" Width="160" HorizontalAlignment="Left" />
+                                <TextBlock Style="{StaticResource Explain}" Text="Numéro de la plateforme Mediaspot du client, envoyé à la connexion API. NRJ12 = 40, FTD = 38, Film and Picture = 30." />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Style="{StaticResource Field}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="ID du provider" Style="{StaticResource Label}" />
+                            <StackPanel Grid.Column="1">
+                                <TextBox Text="{Binding ProviderId}" Width="160" HorizontalAlignment="Left" />
+                                <TextBlock Style="{StaticResource Explain}" Text="Le provider choisi au lancement du Legacy Importer : c'est dans son stockage (dossier temp) que l'import cherche les fichiers. NRJ12 = 661 (asp-nrj12-661-vdm-provider-rdd)." />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Style="{StaticResource Field}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="Login API Mediaspot" Style="{StaticResource Label}" />
+                            <StackPanel Grid.Column="1">
+                                <TextBox Text="{Binding Login}" Width="320" HorizontalAlignment="Left" />
+                                <TextBlock Style="{StaticResource Explain}"
+                                           Text="Un compte utilisateur Mediaspot (comme pour se connecter à app.mediaspot.io) que l'appli utilise pour retrouver les assets créés et suivre leur statut. Pas nécessaire pour préparer et exporter les lots. Ce n'est PAS le compte Aspera. NRJ12 utilisait api.nrj@nrj12." />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Style="{StaticResource Field}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="Mot de passe API" Style="{StaticResource Label}" />
+                            <StackPanel Grid.Column="1">
+                                <StackPanel Orientation="Horizontal">
+                                    <PasswordBox x:Name="ProfilePassword" Width="260" PasswordChanged="ProfilePassword_PasswordChanged" />
+                                    <TextBlock Text="✔ enregistré (laisser vide pour le conserver)" Style="{StaticResource Hint}" VerticalAlignment="Center"
+                                               Margin="10,0,0,0" Visibility="{Binding HasPassword, Converter={StaticResource BoolToVisibility}}" />
+                                </StackPanel>
+                                <Button Content="Tester la connexion Mediaspot" HorizontalAlignment="Left" Margin="0,6,0,0"
+                                        Command="{Binding DataContext.TestMediaspotCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="2. Fichiers sources" Style="{StaticResource SectionTitle}" />
+
+                        <Grid Style="{StaticResource Field}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="Zone de restauration LTO" Style="{StaticResource Label}" />
+                            <StackPanel Grid.Column="1">
+                                <TextBox Text="{Binding SourceRootPath}" />
+                                <TextBlock Style="{StaticResource Explain}"
+                                           Text="Dossier (sur le Qumulo) où les fichiers sont désarchivés. Un élément du registre est cherché dans {ce dossier}\{dossier du titre}\{chemin relatif}, ex. …\20-ANS-D-ECART\FTR\PRHQ\fichier.mov — donc pointer sur le dossier qui contient les dossiers de titres (l'équivalent de CATALOG_EUROPA-CORP)." />
+                            </StackPanel>
+                            <Button Grid.Column="2" Style="{StaticResource BrowseButton}" VerticalAlignment="Top" Command="{Binding BrowseCommand}" CommandParameter="SourceRootPath" />
+                        </Grid>
+
+                        <TextBlock Text="3. Envoi vers Mediaspot (dossier temp du provider)" Style="{StaticResource SectionTitle}" />
+
+                        <Grid Style="{StaticResource Field}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="Mode d'envoi" Style="{StaticResource Label}" />
+                            <StackPanel Grid.Column="1">
+                                <ComboBox ItemsSource="{Binding TransferTargets}" SelectedItem="{Binding TransferTarget}" />
+                                <TextBlock Style="{StaticResource Explain}"
+                                           Text="Folder : le temp du provider est un dossier du Qumulo (plateforme sur site, ex. NRJ12). S3 : le temp du provider est dans un bucket Amazon (plateforme cloud, ex. EuropaCorp), écriture directe avec une clé AWS. Aspera : envoi au compte Aspera du provider." />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Style="{StaticResource Field}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="Copier ou déplacer" Style="{StaticResource Label}" />
+                            <StackPanel Grid.Column="1">
+                                <ComboBox ItemsSource="{Binding DataContext.TransferModes, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                          SelectedItem="{Binding TransferMode}" />
+                                <TextBlock Style="{StaticResource Explain}"
+                                           Text="Copy garde la source sur le Qumulo. Move la supprime — seulement une fois le transfert réussi." />
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Folder target -->
+                        <StackPanel Visibility="{Binding IsFolderTarget, Converter={StaticResource BoolToVisibility}}">
+                            <Grid Style="{StaticResource Field}">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                <TextBlock Text="Dossier temp du provider" Style="{StaticResource Label}" />
+                                <StackPanel Grid.Column="1">
+                                    <TextBox Text="{Binding IngestDirectoryPath}" />
+                                    <TextBlock Style="{StaticResource Explain}"
+                                               Text="Chemin Windows du dossier temp du stockage du provider. NRJ12 : \\qq-vdm.vdm.local\MSP\STK-NRJGROUP\AsperaIngoing\asp-nrj12-661-vdm-provider-rdd\temp" />
+                                </StackPanel>
+                                <Button Grid.Column="2" Style="{StaticResource BrowseButton}" VerticalAlignment="Top" Command="{Binding BrowseCommand}" CommandParameter="IngestDirectoryPath" />
+                            </Grid>
+                            <Grid Style="{StaticResource Field}">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                <TextBlock Text="Dossier done (facultatif)" Style="{StaticResource Label}" />
+                                <StackPanel Grid.Column="1">
+                                    <TextBox Text="{Binding DoneDirectoryPath}" />
+                                    <TextBlock Style="{StaticResource Explain}" Text="Où ranger les fichiers une fois l'asset accepté par Mediaspot. L'ancien outil n'en avait pas pour NRJ12." />
+                                </StackPanel>
+                                <Button Grid.Column="2" Style="{StaticResource BrowseButton}" VerticalAlignment="Top" Command="{Binding BrowseCommand}" CommandParameter="DoneDirectoryPath" />
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Aspera target -->
+                        <StackPanel Visibility="{Binding IsAsperaTarget, Converter={StaticResource BoolToVisibility}}">
+                            <StackPanel Margin="230,0,0,8">
+                                <TextBlock Style="{StaticResource Hint}"
+                                           Text="Le compte Aspera du provider. Hôte et port se récupèrent depuis la fiche du provider dans Mediaspot ; le login et le mot de passe y sont masqués pour les plateformes cloud et sont à saisir (login de la forme asp-&lt;plateforme&gt;-&lt;provider&gt;-…)." />
+                                <Button Content="Récupérer depuis Mediaspot (provider ci-dessus)" HorizontalAlignment="Left" Margin="0,6,0,0"
+                                        Command="{Binding DataContext.FetchAsperaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                            </StackPanel>
+                            <Grid Style="{StaticResource Field}">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <TextBlock Text="Hôte Aspera" Style="{StaticResource Label}" />
+                                <StackPanel Grid.Column="1">
+                                    <TextBox Text="{Binding AsperaHost}" Width="360" HorizontalAlignment="Left" />
+                                    <TextBlock Style="{StaticResource Explain}" Text="Adresse du serveur Aspera (nom DNS ou IP, ex. aspera.exemple.com) — pas le login." />
+                                </StackPanel>
+                            </Grid>
+                            <Grid Style="{StaticResource Field}">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <TextBlock Text="Port SSH" Style="{StaticResource Label}" />
+                                <StackPanel Grid.Column="1">
+                                    <TextBox Text="{Binding AsperaSshPort, TargetNullValue=''}" Width="100" HorizontalAlignment="Left" />
+                                    <TextBlock Style="{StaticResource Explain}" Text="Vide = défaut d'Aspera (33001)." />
+                                </StackPanel>
+                            </Grid>
+                            <Grid Style="{StaticResource Field}">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <TextBlock Text="Login Aspera" Style="{StaticResource Label}" />
+                                <StackPanel Grid.Column="1">
+                                    <TextBox Text="{Binding AsperaLogin}" Width="360" HorizontalAlignment="Left" />
+                                </StackPanel>
+                            </Grid>
+                            <Grid Style="{StaticResource Field}">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <TextBlock Text="Mot de passe Aspera" Style="{StaticResource Label}" />
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <PasswordBox x:Name="AsperaPassword" Width="260" PasswordChanged="AsperaPassword_PasswordChanged" />
+                                    <TextBlock Text="✔ enregistré (laisser vide pour le conserver)" Style="{StaticResource Hint}" VerticalAlignment="Center"
+                                               Margin="10,0,0,0" Visibility="{Binding HasAsperaPassword, Converter={StaticResource BoolToVisibility}}" />
+                                </StackPanel>
+                            </Grid>
+                            <Grid Style="{StaticResource Field}">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <TextBlock Text="Dossier de destination" Style="{StaticResource Label}" />
+                                <StackPanel Grid.Column="1">
+                                    <TextBox Text="{Binding AsperaRemoteDirectory}" Width="360" HorizontalAlignment="Left" />
+                                    <TextBlock Style="{StaticResource Explain}"
+                                               Text="Le dossier temp du provider vu par ce compte Aspera. L'import cherche s3://&lt;bucket&gt;/&lt;racine du stockage&gt;/temp/&lt;nom du fichier&gt; : si le compte Aspera s'ouvre sur la racine du stockage, c'est /temp." />
+                                </StackPanel>
+                            </Grid>
+                            <Grid Style="{StaticResource Field}">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <TextBlock Text="Débit cible" Style="{StaticResource Label}" />
+                                <StackPanel Grid.Column="1">
+                                    <TextBox Text="{Binding AsperaTargetRate}" Width="100" HorizontalAlignment="Left" />
+                                    <TextBlock Style="{StaticResource Explain}" Text="Option -l d'ascp, ex. 500m = 500 Mbit/s. Les outils de Yan utilisaient 150m." />
+                                </StackPanel>
+                            </Grid>
+                            <Grid Style="{StaticResource Field}">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <TextBlock Text="Chemin d'ascp.exe" Style="{StaticResource Label}" />
+                                <StackPanel Grid.Column="1">
+                                    <TextBox Text="{Binding AscpPath}" />
+                                    <TextBlock Style="{StaticResource Explain}" Text="{Binding DetectedAscp, StringFormat='Vide = Aspera Connect, {0}.'}" />
+                                    <Button Content="Tester Aspera" HorizontalAlignment="Left" Margin="0,6,0,0" Command="{Binding TestAsperaCommand}" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- S3 target -->
+                        <StackPanel Visibility="{Binding IsS3Target, Converter={StaticResource BoolToVisibility}}">
+                            <StackPanel Margin="230,0,0,8">
+                                <TextBlock Style="{StaticResource Hint}"
+                                           Text="Écriture directe dans le dossier temp du provider, dans son bucket S3, avec une clé d'accès AWS. Le Legacy Importer y trouve ensuite les fichiers comme sur une plateforme sur site." />
+                                <Button Content="Récupérer bucket et dossier depuis Mediaspot" HorizontalAlignment="Left" Margin="0,6,0,0"
+                                        Command="{Binding DataContext.FetchAsperaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                            </StackPanel>
+                            <Grid Style="{StaticResource Field}">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <TextBlock Text="Bucket" Style="{StaticResource Label}" />
+                                <StackPanel Grid.Column="1">
+                                    <TextBox Text="{Binding S3Bucket}" Width="420" HorizontalAlignment="Left" />
+                                    <TextBlock Style="{StaticResource Explain}" Text="EuropaCorp : s3-mediaspot-production-clientstorage-eu" />
+                                </StackPanel>
+                            </Grid>
+                            <Grid Style="{StaticResource Field}">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <TextBlock Text="Dossier temp (préfixe)" Style="{StaticResource Label}" />
+                                <StackPanel Grid.Column="1">
+                                    <TextBox Text="{Binding S3Prefix}" />
+                                    <TextBlock Style="{StaticResource Explain}" Text="EuropaCorp : MSPROOT/AsperaIngoing/asp-cloudawsdemo-759-vdmeuropa/temp/" />
+                                </StackPanel>
+                            </Grid>
+                            <Grid Style="{StaticResource Field}">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <TextBlock Text="Région AWS" Style="{StaticResource Label}" />
+                                <StackPanel Grid.Column="1">
+                                    <TextBox Text="{Binding S3Region}" Width="180" HorizontalAlignment="Left" />
+                                    <TextBlock Style="{StaticResource Explain}" Text="Ex. eu-west-1, eu-west-3 (Paris). Fournie avec la clé." />
+                                </StackPanel>
+                            </Grid>
+                            <Grid Style="{StaticResource Field}">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <TextBlock Text="Access Key ID" Style="{StaticResource Label}" />
+                                <TextBox Grid.Column="1" Text="{Binding S3AccessKeyId}" Width="320" HorizontalAlignment="Left" />
+                            </Grid>
+                            <Grid Style="{StaticResource Field}">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <TextBlock Text="Secret Access Key" Style="{StaticResource Label}" />
+                                <StackPanel Grid.Column="1">
+                                    <StackPanel Orientation="Horizontal">
+                                        <PasswordBox x:Name="S3Secret" Width="320" PasswordChanged="S3Secret_PasswordChanged" />
+                                        <TextBlock Text="✔ enregistrée (laisser vide pour la conserver)" Style="{StaticResource Hint}" VerticalAlignment="Center"
+                                                   Margin="10,0,0,0" Visibility="{Binding HasS3Secret, Converter={StaticResource BoolToVisibility}}" />
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource Explain}" Text="Idéalement une clé limitée au seul dossier temp du provider (écriture, lecture des métadonnées, envoi en plusieurs morceaux)." />
+                                    <Button Content="Tester S3" HorizontalAlignment="Left" Margin="0,6,0,0" Command="{Binding TestS3Command}" />
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+
+                        <TextBlock Text="4. Fichier Legacy Importer" Style="{StaticResource SectionTitle}" />
+
+                        <Grid Style="{StaticResource Field}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="Modèle de la plateforme" Style="{StaticResource Label}" />
+                            <StackPanel Grid.Column="1">
+                                <TextBox Text="{Binding TemplatePath}" />
+                                <TextBlock Style="{StaticResource Explain}"
+                                           Text="Le .xlsx dont les 5 premières lignes décrivent les colonnes (1 tagName, 2 couche, 3 M/O/A, 4 valeurs, 5 libellé). C'est lui qui décide des colonnes de l'export." />
+                            </StackPanel>
+                            <Button Grid.Column="2" Style="{StaticResource BrowseButton}" VerticalAlignment="Top" Command="{Binding BrowseCommand}" CommandParameter="TemplatePath" />
+                            <Button Grid.Column="3" Content="Lire le modèle" Margin="6,0,0,0" VerticalAlignment="Top" Command="{Binding ReadTemplateCommand}" />
+                        </Grid>
+                        <TextBlock Text="{Binding TemplateSummary}" Style="{StaticResource Hint}" Margin="230,0,0,4" />
+                        <DataGrid ItemsSource="{Binding TemplateColumns}" AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="260"
+                                  Margin="230,0,0,8" HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                  Visibility="{Binding TemplateSummary, Converter={StaticResource NullToCollapsed}}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="tagName" Binding="{Binding TagName}" Width="200" />
+                                <DataGridTextColumn Header="Libellé" Binding="{Binding Label}" Width="180" />
+                                <DataGridTextColumn Header="Couche" Binding="{Binding Layer}" Width="70" />
+                                <DataGridTextColumn Header="Exigence" Binding="{Binding Requirement}" Width="130" />
+                                <DataGridTextColumn Header="Valeurs" Binding="{Binding ValueKind}" Width="*" MinWidth="120" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <Grid Style="{StaticResource Field}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="Dossier des exports" Style="{StaticResource Label}" />
+                            <StackPanel Grid.Column="1">
+                                <TextBox Text="{Binding ExportDirectoryPath}" />
+                                <TextBlock Style="{StaticResource Explain}" Text="Où écrire les XLSX à charger ensuite dans le Legacy Importer. L'ancien outil écrivait dans C:\TEMP." />
+                            </StackPanel>
+                            <Button Grid.Column="2" Style="{StaticResource BrowseButton}" VerticalAlignment="Top" Command="{Binding BrowseCommand}" CommandParameter="ExportDirectoryPath" />
+                        </Grid>
+
+                        <Grid Style="{StaticResource Field}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="Ingest config pack" Style="{StaticResource Label}" />
+                            <StackPanel Grid.Column="1">
+                                <StackPanel Orientation="Horizontal">
+                                    <ComboBox ItemsSource="{Binding ConfigPacks}" SelectedItem="{Binding SelectedConfigPack}" MinWidth="280" />
+                                    <Button Content="Charger depuis Mediaspot" Margin="8,0,0,0"
+                                            Command="{Binding DataContext.LoadImportSettingsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource Explain}"
+                                           Text="Celle qu'on choisit dans le Legacy Importer (NRJ12 : « RDD Pack »). Nécessaire pour « Importer dans Mediaspot » depuis l'appli. Le bouton trouve aussi le stockage LegacyImporter où le XLSX est envoyé." />
+                                <TextBlock Style="{StaticResource Explain}" Text="{Binding LegacyImporterStorageId, StringFormat='Stockage LegacyImporter : #{0}', TargetNullValue='Stockage LegacyImporter : trouvé automatiquement à l''import'}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="5. Valeurs par défaut" Style="{StaticResource SectionTitle}" />
+
+                        <Grid Style="{StaticResource Field}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="Langue originale du titre" Style="{StaticResource Label}" />
+                            <StackPanel Grid.Column="1">
+                                <TextBox Text="{Binding DefaultOriginalLanguage}" Width="100" HorizontalAlignment="Left" />
+                                <TextBlock Style="{StaticResource Explain}" Text="Utilisée quand le titre n'en a pas (onglet Titres). Code à 3 lettres : FRA, ENG…" />
+                            </StackPanel>
+                        </Grid>
+                        <Grid Style="{StaticResource Field}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="Format image du titre" Style="{StaticResource Label}" />
+                            <StackPanel Grid.Column="1">
+                                <TextBox Text="{Binding DefaultPictureFormat}" Width="100" HorizontalAlignment="Left" />
+                                <TextBlock Style="{StaticResource Explain}" Text="Idem, ex. 1.77, 1.85, 2.39." />
+                            </StackPanel>
+                        </Grid>
+                        <Grid Style="{StaticResource Field}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="Valeurs fixes par colonne" Style="{StaticResource Label}" />
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Style="{StaticResource Explain}" Margin="2,6,0,6"
+                                           Text="Écrites dans chaque item, par tagName du modèle (ex. assetClass = MEZZ, contentVersion = Original). Les valeurs déduites du registre passent par-dessus." />
+                                <DataGrid ItemsSource="{Binding DefaultCellValues}" AutoGenerateColumns="False" CanUserAddRows="False"
+                                          MaxHeight="220" HeadersVisibility="Column" GridLinesVisibility="Horizontal">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="tagName" Binding="{Binding TagName, UpdateSourceTrigger=PropertyChanged}" Width="220" />
+                                        <DataGridTextColumn Header="Valeur" Binding="{Binding Value, UpdateSourceTrigger=PropertyChanged}" Width="*" MinWidth="160" />
+                                        <DataGridTemplateColumn Width="40">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Button Content="✕" Padding="4,0"
+                                                            Command="{Binding DataContext.RemoveDefaultValueCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                            CommandParameter="{Binding}" />
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <Button Content="Ajouter une valeur" Command="{Binding AddDefaultValueCommand}" HorizontalAlignment="Left" Margin="0,6,0,0" />
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="6. Suivi des assets dans Mediaspot" Style="{StaticResource SectionTitle}" />
+                        <Grid Style="{StaticResource Field}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="Métadonnée « id registre »" Style="{StaticResource Label}" />
+                            <StackPanel Grid.Column="1">
+                                <TextBox Text="{Binding StreamIdTagName}" Width="260" HorizontalAlignment="Left" />
+                                <TextBlock Style="{StaticResource Explain}" Text="Métadonnée d'asset où l'export écrit l'id de l'élément du registre, pour retrouver l'asset après l'import. Par défaut streamId." />
+                            </StackPanel>
+                        </Grid>
+                        <Grid Style="{StaticResource Field}">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="Métadonnée « nom client »" Style="{StaticResource Label}" />
+                            <StackPanel Grid.Column="1">
+                                <TextBox Text="{Binding CustomerOriginalFileNameTagName}" Width="260" HorizontalAlignment="Left" />
+                                <TextBlock Style="{StaticResource Explain}" Text="Garde le nom de fichier d'origine (Mediaspot renomme le fichier à l'ingest). Recherche de secours. Par défaut customerOriginalFileName." />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- ================= Global settings ================= -->
+                    <TextBlock Text="Commun à toutes les plateformes" Style="{StaticResource SectionTitle}" Margin="0,28,0,6" FontSize="18" />
+
+                    <TextBlock Text="Stockage des lots" Style="{StaticResource SectionTitle}" />
+                    <Grid Style="{StaticResource Field}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <TextBlock Text="Type" Style="{StaticResource Label}" />
+                        <StackPanel Grid.Column="1">
+                            <ComboBox ItemsSource="{Binding StoreKinds}" SelectedItem="{Binding StoreKind}" />
+                            <TextBlock Style="{StaticResource Explain}" Text="Où l'appli garde les lots, items et titres. Local : fichiers JSON sur ce poste. Mongo : partagé entre utilisateurs (ex. avec Yan)." />
+                        </StackPanel>
+                    </Grid>
+                    <Grid Style="{StaticResource Field}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <TextBlock Text="Dossier local" Style="{StaticResource Label}" />
+                        <TextBox Grid.Column="1" Text="{Binding LocalDirectory}" />
+                    </Grid>
+                    <Grid Style="{StaticResource Field}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <TextBlock Text="Chaîne de connexion MongoDB" Style="{StaticResource Label}" />
+                        <StackPanel Grid.Column="1">
+                            <StackPanel Orientation="Horizontal">
+                                <PasswordBox x:Name="MongoConnectionString" Width="420" PasswordChanged="MongoConnectionString_PasswordChanged" />
+                                <TextBlock Text="✔ enregistrée" Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="10,0,0,0"
+                                           Visibility="{Binding HasMongoConnectionString, Converter={StaticResource BoolToVisibility}}" />
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource Explain}" Text="Chaîne mongodb:// complète, identifiants compris — seulement en mode Mongo. L'ancien outil utilisait vdm-prod-mongo-routerp1.vdm.local, base VDMPROD." />
+                        </StackPanel>
+                    </Grid>
+                    <Grid Style="{StaticResource Field}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <TextBlock Text="Base / préfixe des collections" Style="{StaticResource Label}" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <TextBox Text="{Binding MongoDatabase}" Width="200" />
+                            <TextBox Text="{Binding CollectionPrefix}" Width="200" Margin="8,0,0,0" />
+                        </StackPanel>
+                    </Grid>
+                    <Button Content="Tester le stockage" Command="{Binding TestStoreCommand}" HorizontalAlignment="Left" Margin="230,0,0,0" />
+
+                    <TextBlock Text="API Mediaspot" Style="{StaticResource SectionTitle}" Margin="0,20,0,6" />
+                    <Grid Style="{StaticResource Field}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <TextBlock Text="URL de l'API" Style="{StaticResource Label}" />
+                        <StackPanel Grid.Column="1">
+                            <TextBox Text="{Binding ApiBaseUrl}" />
+                            <TextBlock Style="{StaticResource Explain}" Text="Les services sont appelés en {URL}/{service}-service/api. Production : https://api.mediaspot.io" />
+                        </StackPanel>
+                    </Grid>
+                    <Grid Style="{StaticResource Field}">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="230" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <TextBlock Text="URL de l'application" Style="{StaticResource Label}" />
+                        <StackPanel Grid.Column="1">
+                            <TextBox Text="{Binding AppBaseUrl}" />
+                            <TextBlock Style="{StaticResource Explain}" Text="Pour « Ouvrir dans Mediaspot » : {URL}/assets/{id}." />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </DockPanel>
+</UserControl>
